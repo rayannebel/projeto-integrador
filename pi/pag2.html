@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualização de Chamados</title>
+</head>
+<body>
+    <h1>Visualização de Chamados</h1>
+    
+    <label for="filtro">Filtrar por:</label>
+    <select id="filtro">
+        <option value="todos">Todos os Chamados</option>
+        <option value="nao_finalizados">Chamados Não Finalizados</option>
+    </select><br><br>
+    
+    <div id="listaChamados"></div>
+    
+    <script>
+        function carregarChamados() {
+            const filtro = document.getElementById("filtro").value;
+            fetch(`https://parseapi.back4app.com/classes/Chamado=${filtro}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar chamados');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const listaChamados = document.getElementById('listaChamados');
+                listaChamados.innerHTML = '';
+                data.forEach(chamado => {
+                    const divChamado = document.createElement('div');
+                    divChamado.innerHTML = `
+                        <h3>${chamado.assunto}</h3>
+                        <p>${chamado.mensagem}</p>
+                        <textarea id="resposta-${chamado.id}" rows="4" cols="50" placeholder="Digite sua resposta"></textarea><br>
+                        <button onclick="responderChamado('${chamado.id}')">Responder</button>
+                        <button onclick="finalizarChamado('${chamado.id}')">Finalizar Chamado</button>
+                    `;
+                    listaChamados.appendChild(divChamado);
+                });
+            })
+            .catch(error => {
+                console.error('Erro:', error.message);
+                alert('Erro ao carregar chamados. Por favor, tente novamente mais tarde.');
+            });
+        }
+        
+        function responderChamado(chamadoId) {
+            const resposta = document.getElementById(`resposta-${chamadoId}`).value.trim();
+            if (resposta === "") {
+                alert('Por favor, digite uma resposta.');
+                return;
+            }
+            fetch('URL_do_backend/responder_chamado', {
+                method: 'POST',
+                body: JSON.stringify({ id: chamadoId, resposta: resposta }),
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao responder chamado');
+                }
+                alert('Resposta enviada com sucesso!');
+                carregarChamados();
+            })
+            .catch(error => {
+                console.error('Erro:', error.message);
+                alert('Erro ao enviar resposta. Por favor, tente novamente mais tarde.');
+            });
+        }
+        
+        function finalizarChamado(chamadoId) {
+            fetch('URL_do_backend/finalizar_chamado', {
+                method: 'POST',
+                body: JSON.stringify({ id: chamadoId }),
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao finalizar chamado');
+                }
+                alert('Chamado finalizado com sucesso!');
+                carregarChamados();
+            })
+            .catch(error => {
+                console.error('Erro:', error.message);
+                alert('Erro ao finalizar chamado. Por favor, tente novamente mais tarde.');
+            });
+        }
+        
+        document.getElementById("filtro").addEventListener("change", function() {
+            carregarChamados();
+        });
+        
+        carregarChamados();
+    </script>
+</body>
+</html>

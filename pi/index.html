@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Chamado</title>
+</head>
+<body>
+    <h1>Cadastrar Chamado</h1>
+    <hr>
+    <br>
+    <form id="cadastroForm">
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" name="nome" required><br>
+        <br>
+        
+        <label for="email">E-mail:</label>
+        <input type="email" id="email" name="email" required><br>
+        <br>
+        <label for="assunto">Assunto:</label>
+        <input type="text" id="assunto" name="assunto" required><br>
+        <br>
+        <label for="mensagem">Mensagem:</label><br>
+        <textarea id="mensagem" name="mensagem" rows="4" cols="50" required></textarea><br>
+        <br>
+
+        <button type="submit">Enviar Chamado</button>
+    </form>
+    
+    <script>
+        document.getElementById("cadastroForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const data = {};
+            formData.forEach((value, key) => { data[key] = value });
+            fetch('https://parseapi.back4app.com/classes/Chamado', {
+                method: 'POST',
+                body: JSON.stringify(data),
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao cadastrar chamado');
+                }
+                alert('Chamado cadastrado!');
+                this.reset();
+            })
+            .catch(error => {
+                console.error('Erro:', error.message);
+                alert('Erro!');
+            });
+        });
+    </script>
+</body>
+</html>
